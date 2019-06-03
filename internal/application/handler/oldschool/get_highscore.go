@@ -3,7 +3,7 @@ package oldschool
 import (
 	"fmt"
 	"lookup/internal/application/service"
-	"lookup/internal/domain/highscore"
+	"lookup/internal/domain"
 	"lookup/internal/errs"
 )
 
@@ -12,7 +12,7 @@ type GetHighScoreRequest struct {
 }
 
 type GetHighScoreResponse struct {
-	HighScore *highscore.HighScore
+	HighScore *domain.HighScore
 }
 
 func NewGetHighScoreHandler(highScoreService service.HighScore) *GetHighScoreHandler {

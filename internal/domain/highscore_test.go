@@ -1,4 +1,4 @@
-package highscore
+package domain
 
 import (
 	"testing"
