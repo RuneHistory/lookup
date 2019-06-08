@@ -13,3 +13,6 @@
 
 # IDE config
 .idea
+
+# Secrets
+.env
