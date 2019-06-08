@@ -12,8 +12,6 @@ services:
         aliases:
           - rh-lookup
     container_name: rh-lookup
-    env_file:
-      .env
     environment:
       LISTEN_ADDRESS: :80
       WAIT_HOSTS:
