@@ -2,4 +2,7 @@ module lookup
 
 go 1.12
 
-require github.com/go-chi/chi v4.0.2+incompatible
+require (
+	github.com/go-chi/chi v4.0.2+incompatible
+	github.com/jmwri/go-http v0.0.1
+)

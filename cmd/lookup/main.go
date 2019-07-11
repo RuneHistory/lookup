@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"errors"
 	"github.com/go-chi/chi"
+	"github.com/jmwri/go-http"
 	"log"
 	"lookup/internal/application/service"
 	"lookup/internal/transport/http_transport"
@@ -40,7 +40,7 @@ func main() {
 	http_transport.Bootstrap(r, highScoreService)
 
 	wg.Add(1)
-	go http_transport.Start(address, r, wg, ctx, errCh)
+	go go_http.Start(address, r, wg, ctx, errCh)
 
 	// doneCh will be closed once wg is done
 	doneCh := make(chan struct{})

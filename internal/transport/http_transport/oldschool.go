@@ -2,6 +2,7 @@ package http_transport
 
 import (
 	"github.com/go-chi/chi"
+	"github.com/jmwri/go-http"
 	"lookup/internal/application/handler/oldschool"
 	"lookup/internal/mapper"
 	"net/http"
@@ -20,5 +21,5 @@ func GetHighScoreEncoder(d interface{}) (interface{}, error) {
 }
 
 func GetHighScoreResponder(w http.ResponseWriter, d interface{}) {
-	SendJson(d, w)
+	go_http.SendJson(d, w)
 }
