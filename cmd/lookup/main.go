@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"github.com/go-chi/chi"
 	"log"
@@ -10,48 +11,74 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 )
 
 func main() {
 	address := os.Getenv("LISTEN_ADDRESS")
 
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
 	wg := &sync.WaitGroup{}
 	shutdownCh := make(chan struct{})
 	errCh := make(chan error)
-	go handleShutdownSignal(errCh)
+	go handleShutdownSignal(shutdownCh)
+	go func() {
+		select {
+		case <-shutdownCh:
+			break
+		case err := <-errCh:
+			log.Printf("fatal error: %s", err)
+		}
+		cancel()
+	}()
 
 	r := chi.NewRouter()
 
 	highScoreService := service.NewHighScoreService()
 	http_transport.Bootstrap(r, highScoreService)
 
-	go http_transport.Start(address, r, wg, shutdownCh, errCh)
+	wg.Add(1)
+	go http_transport.Start(address, r, wg, ctx, errCh)
 
-	err := <-errCh
-	if err != nil {
-		log.Printf("fatal err: %s\n", err)
+	// doneCh will be closed once wg is done
+	doneCh := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(doneCh)
+	}()
+
+	select {
+	case <-doneCh:
+		// we're finished so start the shutdown
+		log.Println("all services finished")
+	case <-ctx.Done():
+		break
+		// break out and wait for shutdown
 	}
 
-	log.Println("initiating graceful shutdown")
-	close(shutdownCh)
+	log.Println("waiting for shutdown")
 
-	wg.Wait()
-	log.Println("shutdown")
+	select {
+	case <-time.After(time.Second * 10):
+		log.Println("killed - took too long to shutdown")
+	case <-doneCh:
+		log.Println("all services shutdown")
+	}
 }
 
-func handleShutdownSignal(errCh chan error) {
+func handleShutdownSignal(shutdownCh chan struct{}) {
 	quitCh := make(chan os.Signal)
 	signal.Notify(quitCh, os.Interrupt, syscall.SIGTERM)
 
-	hit := false
+	startedShutdown := false
 	for {
 		<-quitCh
-		if hit {
+		if startedShutdown {
 			os.Exit(0)
 		}
-		if !hit {
-			errCh <- errors.New("shutdown signal received")
-		}
-		hit = true
+		close(shutdownCh)
+		startedShutdown = true
 	}
 }
