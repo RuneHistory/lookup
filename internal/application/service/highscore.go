@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"lookup/internal/domain"
+	"lookup/internal/errs"
 	"net/http"
 	"strconv"
 	"strings"
@@ -25,7 +26,7 @@ func (s *HighScoreService) GetByNickname(nickname string) (*domain.HighScore, er
 	h := domain.NewHighScore(nickname, time.Now())
 	data, err := getHighScoreData(nickname)
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch data: %s", err)
+		return nil, err
 	}
 	rows := strings.Split(data, "\n")
 
@@ -77,7 +78,7 @@ func getHighScoreData(nickname string) (string, error) {
 	}
 
 	if res.StatusCode == http.StatusNotFound {
-		return "", fmt.Errorf("nickname %s not found on lookup", nickname)
+		return "", errs.NotFound(fmt.Sprintf("nickname %s not found on lookup", nickname))
 	}
 
 	if res.StatusCode != http.StatusOK {
