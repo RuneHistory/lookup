@@ -75,5 +75,14 @@ func getHighScoreData(nickname string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	if res.StatusCode == http.StatusNotFound {
+		return "", fmt.Errorf("nickname %s not found on lookup", nickname)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("status code %d error on lookup for %s", res.StatusCode, nickname)
+	}
+
 	return bodyBuffer.String(), nil
 }
